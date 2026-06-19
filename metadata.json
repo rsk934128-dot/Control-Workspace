@@ -1,0 +1,6 @@
+{
+  "name": "Scrcpy Simulator & Remote Control Workspace",
+  "description": "একটি ইন্টারেক্টিভ লার্নিং হাব এবং সিমুলেটর যা নষ্ট অ্যান্ড্রয়েড ফোনের স্ক্রিন পিসি দিয়ে কন্ট্রোল করার টেকনিক, কোড এবং ব্লাইন্ড ট্রাবলশুটিং শেখায়।",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
