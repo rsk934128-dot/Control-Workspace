@@ -34,6 +34,10 @@ export default function DiagnosticWizard({ isPro, openUpgradeModal }: { isPro: b
   const [selectedId, setSelectedId] = useState<string>("unauthorized");
   const [copiedCmd, setCopiedCmd] = useState<string | null>(null);
 
+  // Smart Fallback Diagnostic Decision Tree states
+  const [currentDecisionStep, setCurrentDecisionStep] = useState<"usb_check" | "screen_status" | "scrcpy_recommend" | "blind_recommend" | "hardware_recommend">("usb_check");
+  const [decisionHistory, setDecisionHistory] = useState<string[]>([]);
+
   // Automated OTG-Controller Script Generator States
   const [otgBrand, setOtgBrand] = useState<string>("Samsung");
   const [otgOS, setOtgOS] = useState<string>("Android 14");
@@ -644,6 +648,225 @@ export default function DiagnosticWizard({ isPro, openUpgradeModal }: { isPro: b
         {/* RESOLVER WORKSPACE VIEW */}
         {activeTab === "resolver" && (
           <div className="flex flex-col gap-4 h-full">
+            {/* SMART FALLBACK DIAGNOSTIC LOGIC (DECISION TREE) */}
+            <div className="bg-gradient-to-r from-slate-950 via-[#0a0f1d] to-slate-950 p-4 rounded-xl border border-indigo-900/40 shadow-inner space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-950 pb-3">
+                <div className="flex items-center gap-2">
+                  <Cpu className="w-5 h-5 text-cyan-400 animate-pulse" />
+                  <div>
+                    <h3 className="text-xs font-bold text-white flex items-center gap-1.5 font-sans uppercase tracking-wider">
+                      স্মার্ট ফ্যালব্যাক ডায়াগনস্টিক ফ্লো (Smart Fallback Flow)
+                    </h3>
+                    <p className="text-[10px] text-gray-500 font-sans mt-0.5">
+                      ইউএসবি ডিবাগিং অফ বা ভাঙা ডিসপ্লে থাকলে সঠিক রিকভারি পদ্ধতি নির্বাচন করার ইন্টারেক্টিভ গাইড।
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setCurrentDecisionStep("usb_check");
+                    setDecisionHistory([]);
+                  }}
+                  className="px-2.5 py-1 text-[9px] font-mono text-cyan-400 border border-cyan-900/40 rounded hover:bg-cyan-950/40 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  রিসেট ফ্লো
+                </button>
+              </div>
+
+              {/* Progress/Path visualizer indicator */}
+              <div className="flex items-center gap-1 text-[10px] text-gray-500 font-mono flex-wrap bg-black/30 p-2 rounded border border-slate-900">
+                <span className="text-cyan-500 font-bold uppercase">ধাপ সিকোয়েন্স:</span>
+                <span className="px-1.5 py-0.5 rounded bg-slate-900 text-slate-400">স্টার্ট</span>
+                {decisionHistory.includes("usb_check") && (
+                  <>
+                    <span className="text-gray-755">→</span>
+                    <span className="px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300">USB চেক</span>
+                  </>
+                )}
+                {decisionHistory.includes("screen_status") && (
+                  <>
+                    <span className="text-gray-755">→</span>
+                    <span className="px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300">ডিসপ্লে অবস্থা</span>
+                  </>
+                )}
+                <span className="text-gray-755">→</span>
+                <span className="px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 font-bold">
+                  {currentDecisionStep === "usb_check" && "USB ডিবাগিং?"}
+                  {currentDecisionStep === "screen_status" && "ডিসপ্লে স্ট্যাটাস?"}
+                  {currentDecisionStep === "scrcpy_recommend" && "রিস্টোর রেজাল্ট (Scrcpy)"}
+                  {currentDecisionStep === "blind_recommend" && "রিস্টোর রেজাল্ট (Blind Assist)"}
+                  {currentDecisionStep === "hardware_recommend" && "রিস্টোর রেজাল্ট (OTG Hardware)"}
+                </span>
+              </div>
+
+              {/* Step Display */}
+              <div className="p-4 rounded-xl bg-slate-950/50 border border-slate-900 relative overflow-hidden">
+                
+                {/* 1. USB Debugging check */}
+                {currentDecisionStep === "usb_check" && (
+                  <div className="space-y-4">
+                    <div className="flex gap-3 items-start">
+                      <div className="p-2 bg-cyan-950/40 rounded-lg text-cyan-400 border border-cyan-900/30">
+                        <Usb className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xxs font-bold text-slate-100 font-sans">
+                          প্রশ্ন ১: আপনার ফোনে কি ইউএসবি ডিবাগিং (USB Debugging) চালু বা অন করা আছে?
+                        </h4>
+                        <p className="text-[10px] text-gray-400 font-sans mt-1 leading-relaxed">
+                          যদি মোবাইল ফোনটি স্ক্রিন ভাঙার আগে কোনো কম্পিউটারের সাথে যুক্ত করে অথরাইজড করা হয়ে থাকে অথবা ডেভেলপার অপশন আগে থেকেই সচল থাকে, তবে "হ্যাঁ" সিলেক্ট করুন। তা না হলে "না" বেছে নিন।
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-1 select-none">
+                      <button
+                        onClick={() => {
+                          setDecisionHistory(prev => [...prev, "usb_check"]);
+                          setCurrentDecisionStep("scrcpy_recommend");
+                        }}
+                        className="flex-1 py-3 px-4 rounded-lg bg-emerald-950/40 hover:bg-emerald-950/70 border border-emerald-900/40 hover:border-emerald-500/50 text-emerald-300 text-xxs font-bold font-sans transition-all text-center cursor-pointer shadow-sm hover:shadow-[0_0_12px_rgba(16,185,129,0.1)] font-sans"
+                      >
+                        👍 হ্যাঁ, ডিবাগিং সচল আছে (Yes)
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDecisionHistory(prev => [...prev, "usb_check"]);
+                          setCurrentDecisionStep("screen_status");
+                        }}
+                        className="flex-1 py-3 px-4 rounded-lg bg-rose-950/30 hover:bg-rose-950/60 border border-rose-950/40 hover:border-rose-500/50 text-rose-300 text-xxs font-bold font-sans transition-all text-center cursor-pointer shadow-sm hover:shadow-[0_0_12px_rgba(239,68,68,0.1)] font-sans"
+                      >
+                        👎 না, ডিবাগিং বন্ধ আছে (No)
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Screen Status Check */}
+                {currentDecisionStep === "screen_status" && (
+                  <div className="space-y-4">
+                    <div className="flex gap-3 items-start">
+                      <div className="p-2 bg-amber-950/40 rounded-lg text-amber-400 border border-amber-900/30">
+                        <Smartphone className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-xxs font-bold text-slate-100 font-sans">
+                          প্রশ্ন ২: ক্ষতিগ্রস্থ ফোনটির ডিসপ্লে বা স্ক্রিনের বর্তমান শারীরিক অবস্থা কেমন?
+                        </h4>
+                        <p className="text-[10px] text-gray-400 font-sans mt-1 leading-relaxed">
+                          ফোনের স্পর্শ বা ডিসপ্লে কাজ না করার ক্ষেত্রে সঠিক ডিরেক্টরি বেছে নিতে স্ক্রিন কন্ডিশন অত্যন্ত গুরুত্বপূর্ণ।
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3 pt-1 select-none">
+                      <button
+                        onClick={() => {
+                          setDecisionHistory(prev => [...prev, "screen_status"]);
+                          setCurrentDecisionStep("blind_recommend");
+                        }}
+                        className="flex-1 p-3 rounded-lg bg-[#0c111e] border border-slate-800 hover:border-cyan-500/50 text-slate-200 hover:text-cyan-300 text-xxs font-bold font-sans text-left transition-all cursor-pointer flex gap-3 items-center"
+                      >
+                        <span className="text-xl">🌑</span>
+                        <div>
+                          <span className="block text-white">সম্পূর্ণ কালো / ব্ল্যাক ডিসপ্লে</span>
+                          <span className="block text-[9px] text-gray-400 font-normal mt-0.5 font-sans">পর্দা দেখা যায় না, কিন্তু ফোন কাঁপে/বাজে (Vibrates)</span>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setDecisionHistory(prev => [...prev, "screen_status"]);
+                          setCurrentDecisionStep("hardware_recommend");
+                        }}
+                        className="flex-1 p-3 rounded-lg bg-[#0c111e] border border-slate-800 hover:border-cyan-500/50 text-slate-200 hover:text-cyan-300 text-xxs font-bold font-sans text-left transition-all cursor-pointer flex gap-3 items-center"
+                      >
+                        <span className="text-xl">⚡</span>
+                        <div>
+                          <span className="block text-white">ডিসপ্লে সচল কিন্তু টাচ অকার্যকর</span>
+                          <span className="block text-[9px] text-gray-400 font-normal mt-0.5 font-sans">পর্দা দেখা যায়, কিন্তু টাচ কাজ করে না বা ঘোস্ট টাচ হয়</span>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Scrcpy Recommendations */}
+                {currentDecisionStep === "scrcpy_recommend" && (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-emerald-950/20 border border-emerald-500/20 rounded-lg flex gap-3 items-start">
+                      <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="text-xxs font-bold text-emerald-300 font-sans">
+                          সুপারিশ: সরাসরি Scrcpy এবং ADB টার্মিনাল সেটআপ করুন!
+                        </h4>
+                        <p className="text-[10px] text-gray-450 leading-relaxed font-sans mt-1">
+                          আপনার ডিভাইসে আগে থেকেই ইউএসবি ডিবাগিং অথরাইজড থাকার কারণে যেকোনো লাইভ মিররিং কোড দিয়ে সরাসরি ফোনের সোর্স পিকচার পিসিতে মিরর করতে পারবেন। এই মোডে কোনো জটিল হার্ডওয়্যার ছাড়াই ব্যাকআপ সম্ভব।
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-900/60 border border-slate-800 rounded-lg text-[10px] text-slate-350 leading-relaxed space-y-1.5 font-sans">
+                      <span className="font-bold text-white block uppercase text-[10px] tracking-wider text-cyan-400 font-sans">করণীয় পদক্ষেপ:</span>
+                      <p>১. পিসির প্রধান ডিরেক্টরিতে ফিরে <strong>"Scrcpy Workspace"</strong> (কোড প্যানেল) চালু করুন।</p>
+                      <p>২. লাইভ সিমুলেটরে <strong>adb devices</strong> এবং <strong>adb shell</strong> কোড রান করে হ্যান্ডশেক কনফার্ম করুন।</p>
+                      <p>৩. ওটিজি ক্যাপচার কার্ড সংযোগ ছাড়াই সরাসরি আপনার কীবোর্ড দিয়ে ফোনের যাবতীয় লক আনলক করে ফেলুন।</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. Blind Sequence Recommendations */}
+                {currentDecisionStep === "blind_recommend" && (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-rose-950/20 border border-rose-500/20 rounded-lg flex gap-3 items-start">
+                      <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="text-xxs font-bold text-rose-300 font-sans">
+                          সুপারিশ: ব্লাইন্ড অ্যাসিস্ট্যান্ট (Blind Assistant) কী-স্ট্রোক সিকোয়েন্স!
+                        </h4>
+                        <p className="text-[10px] text-gray-450 leading-relaxed font-sans mt-1">
+                          যেহেতু ফোনের স্ক্রিন কালো এবং ইউএসবি ডিবাগিংও অফ করা আছে, এই অবস্থায় এডিবি সরাসরি কানেক্ট হবে না। কীবোর্ড দিয়ে ব্লাইন্ড পিন বা পাসওয়ার্ড এন্টার করে ডিবাগিং অন করাই একমাত্র নির্ভরযোগ্য বৈজ্ঞানিক পদ্ধতি।
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-900/60 border border-slate-800 rounded-lg text-[10px] text-slate-350 leading-relaxed space-y-1.5 font-sans">
+                      <span className="font-bold text-white block uppercase text-[10px] tracking-wider text-cyan-400 font-sans">করণীয় পদক্ষেপ:</span>
+                      <p>১. ফোনের ওটিজি পোর্টে একটি সাধারণ ইউএসবি কী-বোর্ড কানেক্ট করুন।</p>
+                      <p>২. আমাদের প্রধান নেভিগেশনের <strong>"Blind Assistant"</strong> ট্যাবে গিয়ে আপনার ফোনের অ্যান্ড্রয়েড ভার্সন সিলেক্ট করুন।</p>
+                      <p>৩. সেখানে প্রদর্শিত কী-সিকোয়েন্সগুলো দেখে দেখে কীবোর্ডে টাইপ করে লক বাইপাস করুন। তারপর সেটিংস রিসেট করে এডিবি অন করুন।</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* 5. Hardware OTG Shop Recommendations */}
+                {currentDecisionStep === "hardware_recommend" && (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-amber-950/20 border border-amber-500/20 rounded-lg flex gap-3 items-start">
+                      <Sparkles className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="text-xxs font-bold text-amber-300 font-sans">
+                          সুপারিশ: ওটিজি হার্ডওয়্যার ডকিং এবং রিসিভার স্টোর!
+                        </h4>
+                        <p className="text-[10px] text-gray-450 leading-relaxed font-sans mt-1">
+                          আপনার ফোনের স্ক্রিন অক্ষতভাবে জ্বলছে কিন্তু কোনো টাচ কাজ করছে না। এই জটিলতা থেকে কাস্টমারের ডেটা উদ্ধার করতে বা মাউস দিয়ে কাজ করতে একটি ওটিজি কেবল বা ইউএসবি ক্যাপচার কার্ড প্রয়োজন।
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-slate-900/60 border border-slate-800 rounded-lg text-[10px] text-slate-350 leading-relaxed space-y-1.5 font-sans">
+                      <span className="font-bold text-white block uppercase text-[10px] tracking-wider text-cyan-400 font-sans">করণীয় পদক্ষেপ:</span>
+                      <p>১. একটি ওটিজি হাব (OTG Hub) দিয়ে একইসাথে মাউস এবং একটি পিসি কানেক্ট করুন।</p>
+                      <p>২. আমাদের <strong>"Recovery Hardware"</strong> (ওটিজি হার্ডওয়্যার) শপে গিয়ে রিকমেন্ডেড ওটিজি হাব বা টাইপ-সি ক্যাপচার কার্ডের বিবরণী দেখে নিন।</p>
+                      <p>৩. মাউসের লেফট ক্লিকের সাহায্যে ওটিজি মোডে বুট সেটিংস এ গিয়ে সরাসরি ইউএসবি ডিবাগিংটি চিরতরে চালু করে নিন।</p>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </div>
+
             <p className="text-xxxxs sm:text-xxs text-slate-400 font-sans leading-relaxed tracking-tight">
               ডিভাইস স্ক্রিন ডিকোড করতে গিয়ে বা স্কিন কানেক্টের সময় নানান ধরণের যান্ত্রিক গোলযোগ দেখা দিতে পারে। আপনার সমস্যাটি নিচের তালিকা থেকে সিলেক্ট করুন এবং সরাসরি ফিক্সড সলিউশন ইন্সট্রাক্ট করুন।
             </p>

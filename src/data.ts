@@ -81,9 +81,21 @@ while True:
         elif key == 27:  # ESC Key (আমরা মোবাইলের BACK বাটন ট্রিগার করব)
             subprocess.Popen(["adb", "shell", "input", "keyevent", "4"], stdout=subprocess.DEVNULL)
             print("[INPUT] Android BACK Key Press Sent")
-        elif key == 32:  # Space Key (পাওয়ার অন/অফ বা আনলক)
-            subprocess.Popen(["adb", "shell", "input", "keyevent", "82"], stdout=subprocess.DEVNULL)
-            print("[INPUT] Android Menu Key (Unlock Screen) Sent")
+        elif key == 32:  # Space Key (পাওয়ার অন/অফ বা আনলক বা স্পেস)
+            subprocess.Popen(["adb", "shell", "input", "keyevent", "62"], stdout=subprocess.DEVNULL)
+            print("[INPUT] Android SPACE Sent")
+        elif key == 8 or key == 127:  # Backspace (ব্যাকস্পেস)
+            subprocess.Popen(["adb", "shell", "input", "keyevent", "67"], stdout=subprocess.DEVNULL)
+            print("[INPUT] Android BACKSPACE Sent")
+        elif key == 13 or key == 10:  # Enter (এন্টার)
+            subprocess.Popen(["adb", "shell", "input", "keyevent", "66"], stdout=subprocess.DEVNULL)
+            print("[INPUT] Android ENTER Sent")
+        elif 32 < key < 127:  # সাধারণ অক্ষর, সংখ্যা ও চিহ্ন (Dynamic Keyboard mapping)
+            char_typed = chr(key)
+            # বিশেষ ক্যারেক্টারগুলো হ্যান্ডল করতে এক কোটেশনের ভেতরে এস্কেপ করা
+            escaped_char = char_typed.replace("'", "\\'")
+            subprocess.Popen(["adb", "shell", "input", "text", escaped_char], stdout=subprocess.DEVNULL)
+            print(f"[INPUT] Android Character Typed: {char_typed}")
             
     except KeyboardInterrupt:
         break
@@ -168,6 +180,171 @@ keyboard.hook(on_key_event)
 
 # লুপ চালু রাখা
 keyboard.wait('esc')
+`
+  },
+  {
+    title: "সি-শার্প উইন্ডোজ ক্লায়েন্ট (C# WPF Enterprise)",
+    language: "csharp",
+    filename: "AndroidMirrorClient.xaml.cs",
+    description: "উইন্ডোজ ডেক্সটপ অ্যাপ্লিকেশনের জন্য পিওর .NET C# উয়িফি (WPF) সোর্স কোড। এটি ডিভাইস সকেট থেকে ছবি রিসিভ করে এবং মাউস ও কীবোর্ড ইভেন্ট এডিবি-তে পাঠায়।",
+    code: `using System;
+using System.IO;
+using System.Net.Sockets;
+using System.Diagnostics;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media.Imaging;
+using System.Threading.Tasks;
+
+namespace AndroidRecoveryClient
+{
+    public partial class MainWindow : Window
+    {
+        private TcpClient tcpClient;
+        private NetworkStream networkStream;
+        private bool isRunning = true;
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            SetupAdbForward();
+            Task.Run(() => StartImageReceiver());
+        }
+
+        // ১. এডিবি পোর্ট ফরওয়ার্ডিং কনফিগার করা
+        private void SetupAdbForward()
+        {
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo("adb", "forward tcp:8080 tcp:8080")
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                Process.Start(psi)?.WaitForExit();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("ADB ফরওয়ার্ড সেটআপ ব্যর্থ হয়েছে: " + ex.Message);
+            }
+        }
+
+        // ২. সকেট কানেকশন ও স্ট্রিম রিসিভার লুপ
+        private async Task StartImageReceiver()
+        {
+            try
+            {
+                tcpClient = new TcpClient("127.0.0.1", 8080);
+                networkStream = tcpClient.GetStream();
+                MemoryStream frameBuffer = new MemoryStream();
+
+                byte[] buffer = new byte[8192];
+                while (isRunning)
+                {
+                    int bytesRead = await networkStream.ReadAsync(buffer, 0, buffer.Length);
+                    if (bytesRead == 0) break;
+
+                    frameBuffer.Write(buffer, 0, bytesRead);
+                    byte[] data = frameBuffer.ToArray();
+
+                    // JPEG স্টার্ট এবং এন্ড মার্কার দিয়ে ফ্রেম আলাদা করা
+                    int startIdx = FindByteArray(data, new byte[] { 0xFF, 0xD8 });
+                    int endIdx = FindByteArray(data, new byte[] { 0xFF, 0xD9 });
+
+                    if (startIdx != -1 && endIdx != -1 && startIdx < endIdx)
+                    {
+                        int length = (endIdx + 2) - startIdx;
+                        byte[] jpgBytes = new byte[length];
+                        Array.Copy(data, startIdx, jpgBytes, 0, length);
+
+                        // থ্রেড সেফ উপায়ে ইউআই ইমেজ আপডেট করা
+                        Dispatcher.Invoke(() => {
+                            BitmapImage bitmap = new BitmapImage();
+                            bitmap.BeginInit();
+                            bitmap.StreamSource = new MemoryStream(jpgBytes);
+                            bitmap.EndInit();
+                            MobileDisplayImage.Source = bitmap;
+                        });
+
+                        // বাফার অফসেট রিলিজ করা
+                        byte[] remaining = new byte[data.Length - (endIdx + 2)];
+                        Array.Copy(data, endIdx + 2, remaining, 0, remaining.Length);
+                        frameBuffer.SetLength(0);
+                        frameBuffer.Write(remaining, 0, remaining.Length);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("কানেকশন ইরর: " + ex.Message);
+            }
+        }
+
+        // ৩. ডিসপ্লেতে মাউস ক্লিক ক্যাচ করে adb tap পুশ করা
+        private void MobileDisplayImage_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Point position = e.GetPosition(MobileDisplayImage);
+            // ইমেজের একচুয়াল ডেনসিটি দিয়ে কনভার্ট করা
+            double actualX = position.X * (1080 / MobileDisplayImage.ActualWidth);
+            double actualY = position.Y * (1920 / MobileDisplayImage.ActualHeight);
+
+            ExecuteAdbCommand($"shell input tap {(int)actualX} {(int)actualY}");
+        }
+
+        // ৪. উইন্ডোজ কিবোর্ড টাইপিং ক্যাচ করে adb text বা keyevent পুশ করা
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (e.Key == Key.Back)
+            {
+                ExecuteAdbCommand("shell input keyevent 67"); // Backspace
+            }
+            else if (e.Key == Key.Enter)
+            {
+                ExecuteAdbCommand("shell input keyevent 66"); // Enter
+            }
+            else if (e.Key == Key.Space)
+            {
+                ExecuteAdbCommand("shell input keyevent 62"); // Space
+            }
+            else if (e.Key >= Key.A && e.Key <= Key.Z)
+            {
+                string character = e.Key.ToString().ToLower();
+                ExecuteAdbCommand($"shell input text {character}");
+            }
+        }
+
+        private void ExecuteAdbCommand(string arguments)
+        {
+            Task.Run(() => {
+                try
+                {
+                    ProcessStartInfo psi = new ProcessStartInfo("adb", arguments)
+                    {
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
+                    Process.Start(psi);
+                }
+                catch { }
+            });
+        }
+
+        private int FindByteArray(byte[] src, byte[] pattern)
+        {
+            for (int i = 0; i <= src.Length - pattern.Length; i++)
+            {
+                bool match = true;
+                for (int j = 0; j < pattern.Length; j++)
+                {
+                    if (src[i + j] != pattern[j]) { match = false; break; }
+                }
+                if (match) return i;
+            }
+            return -1;
+        }
+    }
+}
 `
   }
 ];

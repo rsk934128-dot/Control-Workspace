@@ -15,12 +15,19 @@ import {
 } from "lucide-react";
 import { SimulationState, LogEntry } from "../types";
 
+// Beautiful generated Redmi 5 pictures
+const redmiHomeImg = "/src/assets/images/redmi_5_home_1781939850716.jpg";
+const redmiRecoveryImg = "/src/assets/images/redmi_5_recovery_1781939867128.jpg";
+const redmiHardwareImg = "/src/assets/images/redmi_5_hardware_1781939883178.jpg";
+
 interface PhoneSimulatorProps {
   simulation: SimulationState;
   setSimulation: React.Dispatch<React.SetStateAction<SimulationState>>;
 }
 
 export default function PhoneSimulator({ simulation, setSimulation }: PhoneSimulatorProps) {
+  const [selectedDevice, setSelectedDevice] = useState<"s20" | "redmi5">("redmi5");
+  const [redmiTab, setRedmiTab] = useState<"home" | "recovery" | "hardware">("home");
   const [selectedSimApp, setSelectedSimApp] = useState<"home" | "settings" | "developer_options">("home");
   const [developerActivated, setDeveloperActivated] = useState(false);
   const [usbDebugActive, setUsbDebugActive] = useState(false);
@@ -260,6 +267,38 @@ export default function PhoneSimulator({ simulation, setSimulation }: PhoneSimul
         
         {/* Computer Screen Panel */}
         <div className="flex flex-col items-center flex-1 w-full max-w-[320px]">
+          {/* Device Selector tabs */}
+          <div className="flex bg-[#0a0a0a] border border-[#222] p-1 rounded-lg gap-1.5 mb-2.5 w-full select-none">
+            <button
+              onClick={() => {
+                setSelectedDevice("redmi5");
+                addLog("সিমুলেশন ডিভাইস সক্রিয় করা হয়েছে: Xiaomi Redmi 5 (রেডমি ৫)", "success");
+              }}
+              className={`flex-1 py-1 px-2 text-[10px] font-sans font-bold rounded-md transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                selectedDevice === "redmi5"
+                  ? "bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-md shadow-amber-950/20"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              রেডমি ৫ (Redmi 5)
+            </button>
+            <button
+              onClick={() => {
+                setSelectedDevice("s20");
+                addLog("সিমুলেশন ডিভাইস সক্রিয় করা হয়েছে: Samsung Galaxy S20", "warning");
+              }}
+              className={`flex-1 py-1 px-2 text-[10px] font-sans font-bold rounded-md transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                selectedDevice === "s20"
+                  ? "bg-cyan-600 text-white shadow-md shadow-cyan-950/20"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              গ্যালাক্সি S20
+            </button>
+          </div>
+
           <span className="text-xxxxs sm:text-xxs font-mono text-gray-500 mb-2 uppercase tracking-widest flex items-center gap-1">
             <Laptop className="w-3.5 h-3.5 text-cyan-400" /> পিসি মনিটর উইন্ডো (PC Client)
           </span>
@@ -289,7 +328,7 @@ export default function PhoneSimulator({ simulation, setSimulation }: PhoneSimul
 
             {/* PC Client Active Scrcpy Title bar */}
             <div className="flex items-center justify-between px-3 py-1.5 bg-[#141414] border-b border-[#222] text-[10px] font-mono select-none">
-              <span className="text-gray-400 truncate max-w-[150px]">scrcpy_mirror: SM-G98F</span>
+              <span className="text-gray-400 truncate max-w-[150px]">scrcpy_mirror: {selectedDevice === "redmi5" ? "Xiaomi Redmi 5" : "SM-G98F"}</span>
               <div className="flex gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
@@ -309,141 +348,230 @@ export default function PhoneSimulator({ simulation, setSimulation }: PhoneSimul
                 X: {simulation.currentCoordinate?.x || 0} | Y: {simulation.currentCoordinate?.y || 0}
               </div>
 
-              {/* Simulated OS Screens */}
-              {selectedSimApp === "home" && (
-                <div className="absolute inset-0 flex flex-col p-4 bg-gradient-to-b from-[#111111] to-[#222222] text-[#e0e0e0]">
-                  {/* StatusBar */}
-                  <div className="flex justify-between items-center text-[10px] font-sans opacity-85 mb-3">
-                    <span className="font-semibold text-xxs font-mono text-white">11:58</span>
-                    <div className="flex items-center gap-1 text-gray-300">
-                      <Wifi className="w-3 h-3 text-cyan-400" />
-                      <Battery className="w-3.5 h-3 text-cyan-400" />
+              {selectedDevice === "redmi5" ? (
+                <div className="absolute inset-0 flex flex-col bg-black text-[#e0e0e0] relative">
+                  {/* The actual beautifully generated picture of Redmi 5 screen! */}
+                  <img 
+                    src={
+                      redmiTab === "home" ? redmiHomeImg :
+                      redmiTab === "recovery" ? redmiRecoveryImg :
+                      redmiHardwareImg
+                    } 
+                    alt="Redmi 5 Display View"
+                    className="w-full h-full object-cover transition-all duration-500"
+                    referrerPolicy="no-referrer"
+                  />
+                  
+                  {/* Interactive floating HUD overlay */}
+                  <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-black/85 via-black/50 to-transparent p-3 pt-4 flex justify-between items-center z-10 select-none">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[10px] font-bold text-amber-400 tracking-wider font-sans uppercase flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-amber-500 animate-pulse" />
+                        {redmiTab === "home" && "রেডমি ৫ হোম স্ক্রীন"}
+                        {redmiTab === "recovery" && "এডিবি রিকভারী মোড"}
+                        {redmiTab === "hardware" && "ইন্টারনাল আর্কিটেকচার"}
+                      </span>
+                      <span className="text-[8px] text-gray-400 font-mono">Redmi 5 (MDG1) Live Session</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 font-mono text-[9px] bg-black/50 border border-[#222] px-2 py-0.5 rounded text-cyan-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                      SECURE_LINK
                     </div>
                   </div>
 
-                  {/* Widget */}
-                  <div className="my-5 text-center">
-                    <span className="text-3xl font-light tracking-tight text-white">11:58</span>
-                    <span className="text-[10px] block text-gray-400 mt-1 uppercase font-mono">Friday, June 19</span>
-                  </div>
-
-                  {/* App Grid */}
-                  <div className="grid grid-cols-3 gap-y-7 gap-x-3 mt-10">
-                    {/* Settings App Icon (Simulated TARGET) */}
-                    <div className="flex flex-col items-center group/app">
-                      <div className="w-11 h-11 rounded-xl bg-neutral-900 border border-[#222] flex items-center justify-center p-2.5 shadow-md shadow-black/30 group-hover/app:scale-105 active:scale-90 transition-all">
-                        <Smartphone className="w-full h-full text-slate-300" />
-                      </div>
-                      <span className="text-[9px] mt-1.5 text-center text-gray-300 truncate w-14 font-medium filter drop-shadow">ফোন বুক</span>
-                    </div>
-
-                    <div className="flex flex-col items-center group/app">
-                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center p-2.5 shadow-md shadow-black/30 group-hover/app:scale-105 active:scale-90 transition-all">
-                        <Sparkles className="w-full h-full text-white" />
-                      </div>
-                      <span className="text-[9px] mt-1.5 text-center text-gray-300 truncate w-14 font-medium filter drop-shadow">সহায়ক মডিউল</span>
-                    </div>
-
-                    {/* TARGET SETTINGS ICON */}
-                    <div className="flex flex-col items-center group/settings relative">
-                      <div className="absolute -top-1 -right-1 z-10 w-3 h-3 rounded-full bg-rose-500 animate-ping" />
-                      <div className="absolute -top-1 -right-1 z-10 w-3 h-3 rounded-full bg-rose-500 border border-white/40 flex items-center justify-center text-[7px] text-white font-bold font-mono">
-                        !
-                      </div>
-                      
-                      <div className="w-11 h-11 rounded-xl bg-neutral-950 border-2 border-cyan-500/80 flex items-center justify-center p-2.5 shadow-md shadow-cyan-500/10 group-hover/settings:scale-105 active:scale-90 transition-all ring-4 ring-cyan-950/40">
-                        <Terminal className="w-full h-full text-cyan-400 rotate-12" />
-                      </div>
-                      <span className="text-[9px] mt-1.5 text-center text-cyan-300 font-semibold truncate w-14 filter drop-shadow">Settings (ট্যাপ করুন)</span>
-                    </div>
-                  </div>
-
-                  {/* Status Indicator */}
-                  <div className="mt-auto px-2 py-1 bg-black/40 border border-white/5 rounded-md text-[8px] leading-relaxed text-center font-mono text-gray-300">
-                    <span className="font-semibold text-cyan-400 text-[9px] block mb-0.5">Scrcpy Live Mirror</span>
-                    উইনডোতে ক্লিক করে মাউস ক্লিক কনভার্শন মেকানিজম দেখুন।
-                  </div>
-                </div>
-              )}
-
-              {selectedSimApp === "settings" && (
-                <div className="absolute inset-0 flex flex-col bg-[#080808] text-gray-200 p-3.5">
-                  {/* Custom Header */}
-                  <div className="flex items-center gap-2 pb-2.5 border-b border-[#222] text-xs font-semibold">
-                    <span className="text-gray-500 cursor-pointer">←</span>
-                    <span className="text-white font-sans">Android Settings</span>
-                  </div>
-
-                  {/* Menu Options */}
-                  <div className="flex flex-col gap-1.5 mt-4 text-xxxxs sm:text-[10px]">
-                    <div className="p-2 border border-[#222] rounded bg-neutral-900/40 flex items-center justify-between text-gray-400 opacity-65">
-                      <span>Network & WiFi</span>
-                      <span>Connected</span>
-                    </div>
-                    <div className="p-2 border border-[#222] rounded bg-neutral-900/40 flex items-center justify-between text-gray-400 opacity-65">
-                      <span>Connected Devices (USB)</span>
-                      <span>ADB forward</span>
-                    </div>
-                    <div className="p-2 border border-[#222] rounded bg-neutral-900/40 flex items-center justify-between text-gray-400 opacity-65">
-                      <span>Display & Theme</span>
-                      <span>Dark Theme</span>
-                    </div>
-
-                    {/* About Phone Target Option */}
-                    <div className="relative group/about">
-                      <div className="absolute right-2 top-2 w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
-                      <div className="p-2.5 border border-cyan-500/30 rounded bg-cyan-950/20 text-cyan-300 font-medium hover:bg-cyan-950/40 cursor-pointer flex justify-between items-center transition-all">
-                        <span>About Phone (ডেভেলপার পেতে)</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {selectedSimApp === "developer_options" && (
-                <div className="absolute inset-0 flex flex-col bg-[#050505] text-[#e0e0e0] p-3.5">
-                  {/* Custom Header */}
-                  <div className="flex items-center gap-2 pb-2.5 border-b border-[#222] text-[11px] font-semibold text-white font-sans">
-                    <span className="text-gray-500 cursor-pointer">← About Phone</span>
-                  </div>
-
-                  {/* Build Number Box */}
-                  <div className="flex flex-col gap-2 mt-4 text-xxxxs sm:text-[9px]">
-                    <div className="p-2 border border-[#222] rounded bg-neutral-900/20 text-gray-400">
-                      <span className="block text-gray-600">Model Name</span>
-                      <span className="text-[#e0e0e0]">SM-G98F (Galaxy S20)</span>
-                    </div>
-                    
-                    {/* BUILD NUMBER ACTIVATE TARGET */}
-                    <div className="relative">
-                      {!developerActivated ? (
-                        <div className="absolute -top-1 right-0 w-3 h-3 rounded-full bg-rose-500 animate-ping" />
-                      ) : null}
-                      <div 
-                        className={`p-2.5 border rounded cursor-pointer transition-all ${
-                          developerActivated 
-                            ? "border-cyan-500/40 bg-cyan-950/10 text-cyan-400" 
-                            : "border-cyan-500 border-dashed bg-cyan-950/20 text-cyan-300"
+                  {/* Interactive Bottom action bar inside Redmi 5 */}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-3 pb-4 flex flex-col gap-2 z-10 select-none">
+                    <div className="flex justify-around gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRedmiTab("home");
+                          addLog("[Redmi 5] হোম স্ক্রীন গ্যালারী ভিউ লোড করা হয়েছে।", "success");
+                        }}
+                        className={`flex-1 py-1 px-1.5 text-[8px] font-medium rounded transition-all cursor-pointer ${
+                          redmiTab === "home"
+                            ? "bg-amber-600 text-white font-bold border border-amber-500/30"
+                            : "bg-black/60 border border-[#222] text-gray-400 hover:text-white"
                         }`}
                       >
-                        <span className="block text-xxxxs text-slate-500 uppercase font-mono tracking-wider">Build Number</span>
-                        <span className="font-semibold block text-white font-mono">RP1A.200720.012</span>
-                        <span className="text-xxxxs block text-gray-400 mt-1">
-                          {!developerActivated 
-                            ? "👉 ৭ বার ক্লিক করুন ডেভেলপার মুড অন করতে" 
-                            : "✔ ডেভেলপার মুড এবং এডিবি ডিবাগিং অ্যাক্টিভেটেড!"
-                          }
-                        </span>
-                      </div>
+                        হোম স্ক্রীন
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRedmiTab("recovery");
+                          addLog("[Redmi 5] এডিবি ডায়াগনস্টিকস রিকভারী মোড অ্যাক্টিভ।", "adb");
+                        }}
+                        className={`flex-1 py-1 px-1.5 text-[8px] font-medium rounded transition-all cursor-pointer ${
+                          redmiTab === "recovery"
+                            ? "bg-amber-600 text-white font-bold border border-amber-500/30"
+                            : "bg-black/60 border border-[#222] text-gray-400 hover:text-white"
+                        }`}
+                      >
+                        রিকভারী মোড
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRedmiTab("hardware");
+                          addLog("[Redmi 5] মাদারবোর্ড ও ইলেকট্রনিক্স ডায়াগ্রাম ভিউ।", "info");
+                        }}
+                        className={`flex-1 py-1 px-1.5 text-[8px] font-medium rounded transition-all cursor-pointer ${
+                          redmiTab === "hardware"
+                            ? "bg-amber-600 text-white font-bold border border-amber-500/30"
+                            : "bg-black/60 border border-[#222] text-gray-400 hover:text-white"
+                        }`}
+                      >
+                        হার্ডওয়্যার
+                      </button>
                     </div>
-
-                    <div className="p-2 border border-[#222] rounded bg-neutral-900/20 text-gray-500">
-                      <span className="block text-gray-600 font-sans">Android Version</span>
-                      <span className="text-gray-300 font-mono">11.0 (R)</span>
-                    </div>
+                    
+                    <span className="text-[7.5px] leading-tight text-gray-450 font-sans text-center">
+                      {redmiTab === "home" && "মিইউআই ১১ ইন্টারফেস এবং ডাইনামিক উইজেট গ্যালারি।"}
+                      {redmiTab === "recovery" && "সিস্টেম রিস্টোরেশনের জন্য এডিবি টার্মিনাল ডাটা ফ্লো সংকেত।"}
+                      {redmiTab === "hardware" && "ভাঙা স্ক্রিন ট্রাবলশুটিং মেমোরী ডকিং চিপ ডায়াগ্রাম।"}
+                    </span>
                   </div>
                 </div>
+              ) : (
+                <>
+                  {/* Simulated OS Screens */}
+                  {selectedSimApp === "home" && (
+                    <div className="absolute inset-0 flex flex-col p-4 bg-gradient-to-b from-[#111111] to-[#222222] text-[#e0e0e0]">
+                      {/* StatusBar */}
+                      <div className="flex justify-between items-center text-[10px] font-sans opacity-85 mb-3">
+                        <span className="font-semibold text-xxs font-mono text-white">11:58</span>
+                        <div className="flex items-center gap-1 text-gray-300">
+                          <Wifi className="w-3 h-3 text-cyan-400" />
+                          <Battery className="w-3.5 h-3 text-cyan-400" />
+                        </div>
+                      </div>
+
+                      {/* Widget */}
+                      <div className="my-5 text-center">
+                        <span className="text-3xl font-light tracking-tight text-white">11:58</span>
+                        <span className="text-[10px] block text-gray-400 mt-1 uppercase font-mono">Friday, June 19</span>
+                      </div>
+
+                      {/* App Grid */}
+                      <div className="grid grid-cols-3 gap-y-7 gap-x-3 mt-10">
+                        {/* Settings App Icon (Simulated TARGET) */}
+                        <div className="flex flex-col items-center group/app">
+                          <div className="w-11 h-11 rounded-xl bg-neutral-900 border border-[#222] flex items-center justify-center p-2.5 shadow-md shadow-black/30 group-hover/app:scale-105 active:scale-90 transition-all">
+                            <Smartphone className="w-full h-full text-slate-300" />
+                          </div>
+                          <span className="text-[9px] mt-1.5 text-center text-gray-300 truncate w-14 font-medium filter drop-shadow">ফোন বুক</span>
+                        </div>
+
+                        <div className="flex flex-col items-center group/app">
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center p-2.5 shadow-md shadow-black/30 group-hover/app:scale-105 active:scale-90 transition-all">
+                            <Sparkles className="w-full h-full text-white" />
+                          </div>
+                          <span className="text-[9px] mt-1.5 text-center text-gray-300 truncate w-14 font-medium filter drop-shadow">সহায়ক মডিউল</span>
+                        </div>
+
+                        {/* TARGET SETTINGS ICON */}
+                        <div className="flex flex-col items-center group/settings relative">
+                          <div className="absolute -top-1 -right-1 z-10 w-3 h-3 rounded-full bg-rose-500 animate-ping" />
+                          <div className="absolute -top-1 -right-1 z-10 w-3 h-3 rounded-full bg-rose-500 border border-white/40 flex items-center justify-center text-[7px] text-white font-bold font-mono">
+                            !
+                          </div>
+                          
+                          <div className="w-11 h-11 rounded-xl bg-neutral-950 border-2 border-cyan-500/80 flex items-center justify-center p-2.5 shadow-md shadow-cyan-500/10 group-hover/settings:scale-105 active:scale-90 transition-all ring-4 ring-cyan-950/40">
+                            <Terminal className="w-full h-full text-cyan-400 rotate-12" />
+                          </div>
+                          <span className="text-[9px] mt-1.5 text-center text-cyan-300 font-semibold truncate w-14 filter drop-shadow">Settings (ট্যাপ করুন)</span>
+                        </div>
+                      </div>
+
+                      {/* Status Indicator */}
+                      <div className="mt-auto px-2 py-1 bg-black/40 border border-white/5 rounded-md text-[8px] leading-relaxed text-center font-mono text-gray-300">
+                        <span className="font-semibold text-cyan-400 text-[9px] block mb-0.5">Scrcpy Live Mirror</span>
+                        উইনডোতে ক্লিক করে মাউস ক্লিক কনভার্শন মেকানিজম দেখুন।
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedSimApp === "settings" && (
+                    <div className="absolute inset-0 flex flex-col bg-[#080808] text-gray-200 p-3.5">
+                      {/* Custom Header */}
+                      <div className="flex items-center gap-2 pb-2.5 border-b border-[#222] text-xs font-semibold">
+                        <span className="text-gray-500 cursor-pointer">←</span>
+                        <span className="text-white font-sans">Android Settings</span>
+                      </div>
+
+                      {/* Menu Options */}
+                      <div className="flex flex-col gap-1.5 mt-4 text-xxxxs sm:text-[10px]">
+                        <div className="p-2 border border-[#222] rounded bg-neutral-900/40 flex items-center justify-between text-gray-400 opacity-65">
+                          <span>Network & WiFi</span>
+                          <span>Connected</span>
+                        </div>
+                        <div className="p-2 border border-[#222] rounded bg-neutral-900/40 flex items-center justify-between text-gray-400 opacity-65">
+                          <span>Connected Devices (USB)</span>
+                          <span>ADB forward</span>
+                        </div>
+                        <div className="p-2 border border-[#222] rounded bg-neutral-900/40 flex items-center justify-between text-gray-400 opacity-65">
+                          <span>Display & Theme</span>
+                          <span>Dark Theme</span>
+                        </div>
+
+                        {/* About Phone Target Option */}
+                        <div className="relative group/about">
+                          <div className="absolute right-2 top-2 w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
+                          <div className="p-2.5 border border-cyan-500/30 rounded bg-cyan-950/20 text-cyan-300 font-medium hover:bg-cyan-950/40 cursor-pointer flex justify-between items-center transition-all">
+                            <span>About Phone (ডেভেলপার পেতে)</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedSimApp === "developer_options" && (
+                    <div className="absolute inset-0 flex flex-col bg-[#050505] text-[#e0e0e0] p-3.5">
+                      {/* Custom Header */}
+                      <div className="flex items-center gap-2 pb-2.5 border-b border-[#222] text-[11px] font-semibold text-white font-sans">
+                        <span className="text-gray-500 cursor-pointer">← About Phone</span>
+                      </div>
+
+                      {/* Build Number Box */}
+                      <div className="flex flex-col gap-2 mt-4 text-xxxxs sm:text-[9px]">
+                        <div className="p-2 border border-[#222] rounded bg-neutral-900/20 text-gray-400">
+                          <span className="block text-gray-600">Model Name</span>
+                          <span className="text-[#e0e0e0]">SM-G98F (Galaxy S20)</span>
+                        </div>
+                        
+                        {/* BUILD NUMBER ACTIVATE TARGET */}
+                        <div className="relative">
+                          {!developerActivated ? (
+                            <div className="absolute -top-1 right-0 w-3 h-3 rounded-full bg-rose-500 animate-ping" />
+                          ) : null}
+                          <div 
+                            className={`p-2.5 border rounded cursor-pointer transition-all ${
+                              developerActivated 
+                                ? "border-cyan-500/40 bg-cyan-950/10 text-cyan-400" 
+                                : "border-cyan-500 border-dashed bg-cyan-950/20 text-cyan-300"
+                            }`}
+                          >
+                            <span className="block text-xxxxs text-slate-500 uppercase font-mono tracking-wider">Build Number</span>
+                            <span className="font-semibold block text-white font-mono">RP1A.200720.012</span>
+                            <span className="text-xxxxs block text-gray-400 mt-1">
+                              {!developerActivated 
+                                ? "👉 ৭ বার ক্লিক করুন ডেভেলপার মুড অন করতে" 
+                                : "✔ ডেভেলপার মুড এবং এডিবি ডিবাগিং অ্যাক্টিভেটেড!"
+                              }
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-2 border border-[#222] rounded bg-neutral-900/20 text-gray-500">
+                          <span className="block text-gray-600 font-sans">Android Version</span>
+                          <span className="text-gray-300 font-mono">11.0 (R)</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Click Ripple Indicator */}
